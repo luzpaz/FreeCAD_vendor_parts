@@ -7,7 +7,13 @@ Integrates [McMaster-Carr](https://www.mcmaster.com/) into [FreeCAD](https://git
 ### Requirements
 
 - FreeCAD Version 0.19 (or LinkStage3)
-- Mcmaster may require you to create an account in order to download files
+- McMaster may require you to create an account in order to download files
+
+### Installation
+
+Installation via the Addon Manager is not supported yet.
+
+Follow the **Manual Install** guide on [this page](https://wiki.freecadweb.org/How_to_install_additional_workbenches) for your OS
 
 ### Acknowledgements
 
