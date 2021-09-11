@@ -42,13 +42,20 @@ class Dialog(QtGui.QDockWidget):
 
     def insert_obj(self):
         doc = FreeCAD.ActiveDocument
-        #docObj = ImportGui.insert(self.objpath, doc.Name)
+        # just create a new document if there isn't one open
+        if not doc:
+            doc = FreeCAD.newDocument()
+        # error if the user didn't download the part as a supported fmt:
+        if self.objpath.split(".")[-1] != "STEP":
+            FreeCAD.Console.PrintError(
+            "McMaster-Carr Error: Download format must be STEP!\n")
+            os.remove(self.objpath)
+            return    
         label = os.path.basename(self.objpath).split("_")[0]
         ImportGui.insert(self.objpath, doc.Name)
         docObj = doc.Objects[-1]
         os.remove(self.objpath)
         self.objpath = None
-        #label = docObj.Label
         # upgrade weirdly imported parts to have a nicer document structure
         if docObj.TypeId == 'Part::Compound2':
             subobjects = docObj.Links
