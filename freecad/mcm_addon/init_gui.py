@@ -15,7 +15,7 @@ class MCMWorkbench(Gui.Workbench):
 
     def Initialize(self):
         from freecad.mcm_addon import mcmtools
-        self.toolbox = ["mcm_toggleBrowser", "mcm_viewPart"]
+        self.toolbox = mcmtools.commandlist
         self.appendToolbar("McMaster-Carr", self.toolbox)
         self.appendMenu("McMaster-Carr", self.toolbox)
 
