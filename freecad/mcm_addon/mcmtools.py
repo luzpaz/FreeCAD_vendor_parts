@@ -7,6 +7,16 @@ import FreeCAD
 import ImportGui
 from freecad.mcm_addon import ICONPATH
 import os
+from zipfile import ZipFile
+import string
+import random
+import tempfile
+
+vendors = {
+    "McMaster-Carr": ("https://www.mcmaster.com/", "mcm_addon.svg"),
+    "GrabCAD": ("https://grabcad.com/", "grabcad.png"),
+    "Misumi": ("https://us.misumi-ec.com/", "misumi.png"),
+}
 
 
 class Dialog(QtGui.QDockWidget):
@@ -16,7 +26,7 @@ class Dialog(QtGui.QDockWidget):
         self.setParent(mw)
         # Setup the widget.
         self.setObjectName("MCM_Dock")
-        self.setWindowTitle("MCMaster Carr Browser")
+        self.setWindowTitle("Embedded Part Vendor Browser")
         # Grab the browser.
         self.webView = QtWebEngineWidgets.QWebEngineView()
         # Prepare a widget & layout.
@@ -33,7 +43,7 @@ class Dialog(QtGui.QDockWidget):
         self.webView.setPage(page)
         channel = QtWebChannel.QWebChannel(self)
         self.webView.page().setWebChannel(channel)
-        self.webView.setUrl("https://www.mcmaster.com/")
+        self.webView.setUrl(vendors["McMaster-Carr"][0])
 
     def on_downloadRequested(self, download):
         self.objpath = download.path()
@@ -45,71 +55,70 @@ class Dialog(QtGui.QDockWidget):
         # just create a new document if there isn't one open
         if not doc:
             doc = FreeCAD.newDocument()
-        # error if the user didn't download the part as a supported fmt:
-        if self.objpath.split(".")[-1] != "STEP":
-            FreeCAD.Console.PrintError(
-            "McMaster-Carr Error: Download format must be STEP!\n")
+        fileExtension = self.objpath.split(".")[-1]
+        if fileExtension.lower() in ("step", "stp"):
+            label = os.path.basename(self.objpath).split("_")[0]
+            ImportGui.insert(self.objpath, doc.Name)
+            docObj = doc.Objects[-1]
             os.remove(self.objpath)
-            return    
-        label = os.path.basename(self.objpath).split("_")[0]
-        ImportGui.insert(self.objpath, doc.Name)
-        docObj = doc.Objects[-1]
-        os.remove(self.objpath)
-        self.objpath = None
-        # upgrade weirdly imported parts to have a nicer document structure
-        if docObj.TypeId == 'Part::Compound2':
-            subobjects = docObj.Links
-            doc.removeObject(docObj.Name)
-            newObj = doc.addObject("App::Part", label)
-            newObj.Group = subobjects
-            for x in subobjects:
-                x.Visibility = True
+            self.objpath = None
+            # upgrade weirdly imported parts to have a nicer document structure
+            if docObj.TypeId == 'Part::Compound2':
+                subobjects = docObj.Links
+                doc.removeObject(docObj.Name)
+                newObj = doc.addObject("App::Part", label)
+                newObj.Group = subobjects
+                for x in subobjects:
+                    x.Visibility = True
+            else:
+                newObj = docObj
+        elif fileExtension.lower() == "zip":
+            tmpExtractFolder = os.path.join(tempfile.gettempdir(), "".join(
+                random.choice(string.ascii_lowercase) for _ in range(10)))
+            os.mkdir(tmpExtractFolder)
+            print(f"extract folder is {tmpExtractFolder}")
+            with ZipFile(self.objpath, 'r') as zip:
+                zip.extractall(tmpExtractFolder)
+            print("files are:", os.listdir(tmpExtractFolder))
+            for thefile in os.listdir(tmpExtractFolder):
+                if thefile.split(".")[-1].lower() in ("step", "stp"):
+                    ImportGui.insert(os.path.join(
+                        tmpExtractFolder, thefile), doc.Name)
+            pass
+        # error if the user didn't download the part as a supported fmt:
         else:
-            newObj = docObj
-        newObj.addProperty("App::PropertyString", "McmasterPartNumber")
-        newObj.McmasterPartNumber = label#.split("_")[0]
-        newObj.setPropertyStatus("McmasterPartNumber", "ReadOnly")
+            FreeCAD.Console.PrintError(
+                f"Error: Download format ({fileExtension}) not supported!\n")
+            os.remove(self.objpath)
+            return
         doc.recompute()
 
 
 class toggleBrowserCmd():
+    def __init__(self, vendor):
+        self.vendor = vendor
+
     def GetResources(self):
-        return {'Pixmap': os.path.join(ICONPATH, "mcm_addon.svg"),
-                'MenuText': "McMaster-Carr browser",
-                'ToolTip': "Toggle McMaster-Carr browser"}
+        return {'Pixmap': os.path.join(ICONPATH, vendors[self.vendor][1]),
+                'MenuText': self.vendor + " browser",
+                'ToolTip': f"Show {self.vendor} browser"}
 
     def Activated(self):
         pe = FreeCAD.Gui.getMainWindow().findChild(QtGui.QWidget, 'MCM_Dock')
         if not pe:
             FreeCAD.Gui.getMainWindow().addDockWidget(
                 QtCore.Qt.RightDockWidgetArea, Dialog())
+            pe = FreeCAD.Gui.getMainWindow().findChild(QtGui.QWidget, 'MCM_Dock')
         else:
-            pe.setVisible(pe.isHidden())
+            pe.setVisible(True)
+        pe.webView.setUrl(vendors[self.vendor][0])
 
     def IsActive(self):
         return True
 
 
-class viewPartCmd():
-    def GetResources(self):
-        return {'Pixmap': os.path.join(ICONPATH, "open_part.svg"),
-                'MenuText': "McMaster-Carr part lookup",
-                'ToolTip': "open the catalog page for the selected McMaster part"}
-
-    def Activated(self):
-        pe = FreeCAD.Gui.getMainWindow().findChild(QtGui.QWidget, 'MCM_Dock')
-        if not pe:
-            pe = Dialog()
-            FreeCAD.Gui.getMainWindow().addDockWidget(
-                QtCore.Qt.RightDockWidgetArea, pe)
-        else:
-            pe.setVisible(True)
-        partNumber = FreeCADGui.Selection.getSelection()[0].McmasterPartNumber
-        pe.webView.setUrl("https://www.mcmaster.com/"+partNumber)
-
-    def IsActive(self):
-        return ("McmasterPartNumber" in FreeCADGui.Selection.getSelection()[0].PropertiesList)
-
-
-FreeCADGui.addCommand('mcm_toggleBrowser', toggleBrowserCmd())
-FreeCADGui.addCommand('mcm_viewPart', viewPartCmd())
+commandlist = []
+for key in vendors.keys():
+    commandname = key+"_toggleBrowser"
+    FreeCADGui.addCommand(commandname, toggleBrowserCmd(key))
+    commandlist.append(commandname)
