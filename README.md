@@ -1,13 +1,13 @@
-# FreeCAD mcm_addon
+# FreeCAD Vendor Parts Addon
 
-Integrates [McMaster-Carr](https://www.mcmaster.com/) into [FreeCAD](https://github.com/FreeCAD/FreeCAD).
+Adds the ability to import 3D models directly from catalogue websites of industrial suppliers into [FreeCAD](https://github.com/FreeCAD/FreeCAD).
 
 ![](resources/screenshot.png)
 
 ### Requirements
 
 - FreeCAD Version 0.19 (or LinkStage3)
-- McMaster may require you to create an account in order to download files
+- Online services that this addon accesses may require you to create an account in order to download files
 
 ### Installation
 

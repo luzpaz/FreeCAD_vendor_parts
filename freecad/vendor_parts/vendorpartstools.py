@@ -1,22 +1,41 @@
+'''
+from PySide import QtGui, QtUiTools, QtCore
+from PySide2 import QtWidgets
+from PySide2 import QtWebEngineWidgets
+try:
+    from PySide2 import QtWebChannel
+except ImportError:
+    raise Exception(
+        "Missing package. Please install: python3-pyqt5.qtwebchannel.")
+'''
 from PySide import QtGui, QtUiTools, QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtWebEngineWidgets
 from PySide2 import QtWebChannel
+
 import FreeCADGui
 import FreeCAD
 import ImportGui
-from freecad.mcm_addon import ICONPATH
+from freecad.vendor_parts import ICONPATH
 import os
 from zipfile import ZipFile
 import string
 import random
 import tempfile
 
-vendors = {
-    "McMaster-Carr": ("https://www.mcmaster.com/", "mcm_addon.svg"),
-    "GrabCAD": ("https://grabcad.com/", "grabcad.png"),
-    "Misumi": ("https://us.misumi-ec.com/", "misumi.png"),
-}
+
+# parse the list of available vendor urls
+UserParams = FreeCAD.ParamGet(
+    "User parameter:BaseApp/Preferences/Mod/VendorParts")
+vendors = {}
+with open(UserParams.GetString("VendorListPath")) as f:
+    for line in f.readlines():
+        url = line[:-1]
+        sitename = url.removeprefix("https://")
+        sitename = sitename.removeprefix("www.")
+        sitename = ".".join(sitename.split(".")[:-1])
+        vendors[sitename] = (url,sitename+".ico")
+print(vendors)
 
 
 class Dialog(QtGui.QDockWidget):
@@ -43,7 +62,7 @@ class Dialog(QtGui.QDockWidget):
         self.webView.setPage(page)
         channel = QtWebChannel.QWebChannel(self)
         self.webView.page().setWebChannel(channel)
-        self.webView.setUrl(vendors["McMaster-Carr"][0])
+        self.webView.setUrl(vendors["mcmaster"][0])
 
     def on_downloadRequested(self, download):
         self.objpath = download.path()

@@ -5,17 +5,17 @@ import os
 # Packages using the same name here cannot be installed together
 
 version_path = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                            "freecad", "mcm_addon", "version.py")
+                            "freecad", "vendor_parts", "version.py")
 with open(version_path) as fp:
     exec(fp.read())
 
-setup(name='freecad.mcm_addon',
+setup(name='freecad.vendor_parts',
       version=str(__version__),
       packages=['freecad',
-                'freecad.mcm_addon'],
+                'freecad.vendor_parts'],
       maintainer="alexneufeld",
       maintainer_email="alex.d.neufeld@gmail.com",
-      url="https://github.com/alexneufeld/FreeCAD_mcm_addon",
-      description="freecad module for mcmaster-carr support, installable with pip",
+      url="https://github.com/alexneufeld/FreeCAD_vendor_parts",
+      description="freecad module for vendor part downloading support, installable with pip",
       install_requires=[],
       include_package_data=True)
