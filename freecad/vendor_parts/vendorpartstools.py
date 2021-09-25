@@ -1,5 +1,6 @@
-'''
-from PySide import QtGui, QtUiTools, QtCore
+from PySide import QtGui
+from PySide import QtUiTools
+from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtWebEngineWidgets
 try:
@@ -7,11 +8,7 @@ try:
 except ImportError:
     raise Exception(
         "Missing package. Please install: python3-pyqt5.qtwebchannel.")
-'''
-from PySide import QtGui, QtUiTools, QtCore
-from PySide2 import QtWidgets
-from PySide2 import QtWebEngineWidgets
-from PySide2 import QtWebChannel
+
 
 import FreeCADGui
 import FreeCAD
@@ -34,8 +31,7 @@ with open(UserParams.GetString("VendorListPath")) as f:
         sitename = url.removeprefix("https://")
         sitename = sitename.removeprefix("www.")
         sitename = ".".join(sitename.split(".")[:-1])
-        vendors[sitename] = (url,sitename+".ico")
-print(vendors)
+        vendors[sitename] = (url, sitename+".ico")
 
 
 class Dialog(QtGui.QDockWidget):
@@ -62,7 +58,6 @@ class Dialog(QtGui.QDockWidget):
         self.webView.setPage(page)
         channel = QtWebChannel.QWebChannel(self)
         self.webView.page().setWebChannel(channel)
-        self.webView.setUrl(vendors["mcmaster"][0])
 
     def on_downloadRequested(self, download):
         self.objpath = download.path()
@@ -95,10 +90,8 @@ class Dialog(QtGui.QDockWidget):
             tmpExtractFolder = os.path.join(tempfile.gettempdir(), "".join(
                 random.choice(string.ascii_lowercase) for _ in range(10)))
             os.mkdir(tmpExtractFolder)
-            print(f"extract folder is {tmpExtractFolder}")
             with ZipFile(self.objpath, 'r') as zip:
                 zip.extractall(tmpExtractFolder)
-            print("files are:", os.listdir(tmpExtractFolder))
             for thefile in os.listdir(tmpExtractFolder):
                 if thefile.split(".")[-1].lower() in ("step", "stp"):
                     ImportGui.insert(os.path.join(

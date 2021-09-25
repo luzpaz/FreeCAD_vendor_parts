@@ -10,9 +10,7 @@ Gui.addIconPath(ICONPATH)
 
 UserParams = App.ParamGet(
     "User parameter:BaseApp/Preferences/Mod/VendorParts")
-print("vendor list path is "+UserParams.GetString("VendorListPath"))
 if not UserParams.GetString("VendorListPath"):
-    print("filepath is none, overriding")
     UserParams.SetString("VendorListPath", os.path.join(
         ADDONPATH, "VendorList.txt"))
 
@@ -20,7 +18,7 @@ if not UserParams.GetString("VendorListPath"):
 class MCMWorkbench(Gui.Workbench):
     MenuText = "Vendor Parts"
     ToolTip = "Import parts from supplier websites"
-    Icon = os.path.join(ICONPATH, "vp_addon.svg")
+    Icon = os.path.join(ICONPATH, "preferences-vendor_parts.svg")
     toolbox = []
 
     def GetClassName(self):
@@ -29,8 +27,8 @@ class MCMWorkbench(Gui.Workbench):
     def Initialize(self):
         from freecad.vendor_parts import vendorpartstools
         self.toolbox = vendorpartstools.commandlist
-        self.appendToolbar("McMaster-Carr", self.toolbox)
-        self.appendMenu("McMaster-Carr", self.toolbox)
+        self.appendToolbar("Vendor Parts", self.toolbox)
+        self.appendMenu("Vendor Parts", self.toolbox)
 
     def Activated(self):
         pass
