@@ -1,5 +1,4 @@
 from PySide import QtGui
-from PySide import QtUiTools
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtWebEngineWidgets
