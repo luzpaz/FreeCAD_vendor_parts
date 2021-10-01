@@ -27,8 +27,11 @@ vendors = {}
 with open(UserParams.GetString("VendorListPath")) as f:
     for line in f.readlines():
         url = line[:-1]
-        sitename = url.removeprefix("https://")
-        sitename = sitename.removeprefix("www.")
+        sitename = url
+        if sitename.startswith("https://"):
+            sitename = sitename[8:]
+        if sitename.startswith("www."):
+            sitename = sitename[4:]
         sitename = ".".join(sitename.split(".")[:-1])
         vendors[sitename] = (url, sitename+".ico")
 
