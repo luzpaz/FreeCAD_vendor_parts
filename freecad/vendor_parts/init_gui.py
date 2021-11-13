@@ -15,7 +15,7 @@ if not UserParams.GetString("VendorListPath"):
         ADDONPATH, "VendorList.txt"))
 
 
-class MCMWorkbench(Gui.Workbench):
+class VendorPartsWorkbench(Gui.Workbench):
     MenuText = "Vendor Parts"
     ToolTip = "Import parts from supplier websites"
     Icon = os.path.join(ICONPATH, "preferences-vendor_parts.svg")
@@ -37,4 +37,4 @@ class MCMWorkbench(Gui.Workbench):
         pass
 
 
-Gui.addWorkbench(MCMWorkbench())
+Gui.addWorkbench(VendorPartsWorkbench())
